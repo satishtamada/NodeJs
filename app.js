@@ -1,22 +1,35 @@
-
-const express = require('express');
 const path = require('path');
 
+const express = require('express');
+const bodyParser = require('body-parser');
+
+const errorController = require('./controllers/error');
+
+const database = require('./utils/database').pool;
+
 const app = express();
-const rootDir = require('./utils/pathutil');
+
+app.set('view engine', 'ejs');
+app.set('views', 'views');
+
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
 
-/** for using css files */
+
+database.execute('SELECT * FROM products')
+    .then(([rows, fieldData]) => {
+        console.log(rows);
+    })
+    .catch(err => {
+        console.log(err);
+    });
+
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-/** for using routs */
-app.use('/admin',adminRoutes.router);
+app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 
-/** handling 404 errors   */
-app.use((req, res, next) => {
-    res.status(404).sendFile(path.join(rootDir,  'views', 'page-not-found.html'));
-});
+app.use(errorController.get404);
 
 app.listen(3000);
