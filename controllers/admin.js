@@ -24,15 +24,16 @@ exports.getEditProduct = (req, res, next) => {
     return res.redirect('/');
   }
   const prodId = req.params.productId;
-  Product.findById(prodId, product => {
-    if (!product) {
+
+  Product.findById(prodId).then(([product, fieldData]) => {
+    if (product.length === 0) {
       return res.redirect('/');
     }
     res.render('admin/edit-product', {
       pageTitle: 'Edit Product',
       path: '/admin/edit-product',
       editing: editMode,
-      product: product
+      product: product[0]
     });
   });
 };
@@ -55,12 +56,15 @@ exports.postEditProduct = (req, res, next) => {
 };
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll(products => {
+   Product.fetchAll().then(([products, fieldData]) => {
+    console.log(products);
     res.render('admin/products', {
       prods: products,
       pageTitle: 'Admin Products',
       path: '/admin/products'
     });
+  }).catch(err => {
+    console.log(err);
   });
 };
 
